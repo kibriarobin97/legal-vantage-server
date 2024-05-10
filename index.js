@@ -47,7 +47,7 @@ async function run() {
         const query = {_id: new ObjectId(id)}
         const result = await serviceCollection.findOne(query)
         res.send(result)
-      })
+    })
 
     app.get('/my-service/:email', async(req, res) => {
         const email = req.params.email;
@@ -62,8 +62,28 @@ async function run() {
         console.log(newService)
         const result = await serviceCollection.insertOne(newService)
         res.send(result)
-      })
-  
+    })
+    
+    app.delete('/services/:id', async(req, res) => {
+        const id = req.params.id;
+        const query = {_id: new ObjectId(id)}
+        const result = await serviceCollection.deleteOne(query)
+        res.send(result)
+    })
+
+    app.put('/services/:id', async(req, res) => {
+        const id = req.params.id;
+        const serviceData = req.body;
+        const query = {_id: new ObjectId(id)}
+        const options = {upsert: true}
+        const updateDoc = {
+          $set: {
+            ...serviceData
+          }
+        }
+        const result = await serviceCollection.updateOne(query, updateDoc, options)
+        res.send(result)
+    })  
 
 
     // Send a ping to confirm a successful connection
