@@ -49,7 +49,15 @@ async function run() {
         res.send(result)
       })
 
-      app.post('/services', async(req, res) => {
+    app.get('/my-service/:email', async(req, res) => {
+        const email = req.params.email;
+        const query = {providerEmail: email}
+        console.log(query)
+        const result = await serviceCollection.find(query).toArray();
+        res.send(result)
+    })
+
+    app.post('/services', async(req, res) => {
         const newService = req.body;
         console.log(newService)
         const result = await serviceCollection.insertOne(newService)
