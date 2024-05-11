@@ -29,6 +29,7 @@ async function run() {
     await client.connect();
 
     const serviceCollection = client.db('legalVantage').collection('services')
+    const bookingCollection = client.db('legalVantage').collection('booking')
 
     app.get('/services', async(req, res) => {
         const cursor = serviceCollection.find().limit(6)
@@ -59,7 +60,7 @@ async function run() {
 
     app.post('/services', async(req, res) => {
         const newService = req.body;
-        console.log(newService)
+        // console.log(newService)
         const result = await serviceCollection.insertOne(newService)
         res.send(result)
     })
@@ -83,7 +84,17 @@ async function run() {
         }
         const result = await serviceCollection.updateOne(query, updateDoc, options)
         res.send(result)
-    })  
+    })
+
+
+    // booking service
+    
+    app.post('/booking', async(req, res) => {
+        const newBooking = req.body;
+        console.log(newBooking)
+        const result = await bookingCollection.insertOne(newBooking)
+        res.send(result)
+    })
 
 
     // Send a ping to confirm a successful connection
