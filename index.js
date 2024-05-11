@@ -88,6 +88,14 @@ async function run() {
 
 
     // booking service
+
+    app.get('/my-booked/:email', async(req, res) => {
+        const email = req.params.email;
+        const query = {userEmail: email}
+        console.log(query)
+        const result = await bookingCollection.find(query).toArray();
+        res.send(result)
+    } )
     
     app.post('/booking', async(req, res) => {
         const newBooking = req.body;
