@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken')
+const cookieParser = require('cookie-parser')
 require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
@@ -7,8 +9,36 @@ const port = process.env.PORT || 5000;
 
 
 // middleware
-app.use(cors());
+const corsOptions = {
+    origin: [
+      'http://localhost:5173',
+      'http://localhost:5174'
+    ],
+    credentials: true,
+    optionSuccessStatus: 200,
+  }
+app.use(cors(corsOptions));
 app.use(express.json());
+app.use(cookieParser());
+
+
+const verifyToken = (req, res, next) => {
+    const token = req.cookies?.token
+    if (!token) return res.status(401).send({ message: 'unauthorized access' })
+    if (token) {
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+          console.log(err)
+          return res.status(401).send({ message: 'unauthorized access' })
+        }
+        console.log(decoded)
+  
+        req.user = decoded
+        next()
+      })
+    }
+  }
+  
 
 
 
@@ -30,6 +60,31 @@ async function run() {
 
     const serviceCollection = client.db('legalVantage').collection('services')
     const bookingCollection = client.db('legalVantage').collection('booking')
+
+    app.post('/jwt', async (req, res) => {
+        const email = req.body
+        const token = jwt.sign(email, process.env.ACCESS_TOKEN_SECRET, {
+          expiresIn: '1d',
+        })
+        res
+          .cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+          })
+          .send({ success: true })
+      })
+
+      app.get('/logout', (req, res) => {
+        res
+          .clearCookie('token', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+            maxAge: 0,
+          })
+          .send({ success: true })
+      })
 
     app.get('/services', async(req, res) => {
         const cursor = serviceCollection.find().limit(6)
@@ -96,17 +151,34 @@ async function run() {
     app.get('/my-booked/:email', async(req, res) => {
         const email = req.params.email;
         const query = {userEmail: email}
-        console.log(query)
         const result = await bookingCollection.find(query).toArray();
         res.send(result)
     } )
     
     app.post('/booking', async(req, res) => {
         const newBooking = req.body;
-        console.log(newBooking)
         const result = await bookingCollection.insertOne(newBooking)
         res.send(result)
     })
+
+    app.get('/booked/:email', async(req, res) => {
+        const email = req.params.email;
+        const query = {providerEmail: email}
+        console.log(query)
+        const result = await bookingCollection.find(query).toArray()
+        res.send(result)
+    })
+
+    app.patch('/booked-service/:id', async (req, res) => {
+        const id = req.params.id
+        const status = req.body
+        const query = { _id: new ObjectId(id) }
+        const updateDoc = {
+          $set: status,
+        }
+        const result = await bookingCollection.updateOne(query, updateDoc)
+        res.send(result)
+      })
 
 
     // Send a ping to confirm a successful connection
