@@ -38,7 +38,11 @@ async function run() {
     })
 
     app.get('/all-services', async(req, res) => {
-        const cursor = serviceCollection.find()
+        const search = req.query.search
+        let query = {
+            name: { $regex: search, $options: 'i' },
+          }
+        const cursor = serviceCollection.find(query)
         const result = await cursor.toArray()
         res.send(result)
     })
