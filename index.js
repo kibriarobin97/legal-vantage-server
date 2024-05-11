@@ -109,8 +109,12 @@ async function run() {
         res.send(result)
     })
 
-    app.get('/my-service/:email', async(req, res) => {
+    app.get('/my-service/:email', verifyToken, async(req, res) => {
+        const tokenEmail = req.user.email;
         const email = req.params.email;
+        if (tokenEmail !== email) {
+            return res.status(403).send({ message: 'forbidden access' })
+          }
         const query = {providerEmail: email}
         console.log(query)
         const result = await serviceCollection.find(query).toArray();
@@ -131,7 +135,7 @@ async function run() {
         res.send(result)
     })
 
-    app.put('/services/:id', async(req, res) => {
+    app.put('/services/:id', verifyToken, async(req, res) => {
         const id = req.params.id;
         const serviceData = req.body;
         const query = {_id: new ObjectId(id)}
@@ -148,8 +152,12 @@ async function run() {
 
     // booking service
 
-    app.get('/my-booked/:email', async(req, res) => {
+    app.get('/my-booked/:email', verifyToken, async(req, res) => {
+        const tokenEmail = req.user.email;
         const email = req.params.email;
+        if (tokenEmail !== email) {
+            return res.status(403).send({ message: 'forbidden access' })
+          }
         const query = {userEmail: email}
         const result = await bookingCollection.find(query).toArray();
         res.send(result)
@@ -161,8 +169,12 @@ async function run() {
         res.send(result)
     })
 
-    app.get('/booked/:email', async(req, res) => {
+    app.get('/booked/:email', verifyToken, async(req, res) => {
+        const tokenEmail = req.user.email;
         const email = req.params.email;
+        if (tokenEmail !== email) {
+            return res.status(403).send({ message: 'forbidden access' })
+          }
         const query = {providerEmail: email}
         console.log(query)
         const result = await bookingCollection.find(query).toArray()
