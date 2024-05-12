@@ -33,7 +33,7 @@ const verifyToken = (req, res, next) => {
           console.log(err)
           return res.status(401).send({ message: 'unauthorized access' })
         }
-        console.log(decoded)
+        // console.log(decoded)
   
         req.user = decoded
         next()
@@ -118,7 +118,7 @@ async function run() {
             return res.status(403).send({ message: 'forbidden access' })
           }
         const query = {providerEmail: email}
-        console.log(query)
+        // console.log(query)
         const result = await serviceCollection.find(query).toArray();
         res.send(result)
     })
@@ -178,7 +178,7 @@ async function run() {
             return res.status(403).send({ message: 'forbidden access' })
           }
         const query = {providerEmail: email}
-        console.log(query)
+        // console.log(query)
         const result = await bookingCollection.find(query).toArray()
         res.send(result)
     })
